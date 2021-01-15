@@ -14,7 +14,7 @@ def build_text_files(text_list, dest_path):
     f = open(dest_path, 'w')
     data = ''
     for text in text_list:
-        summary = str(text.split('|')[1]).strip()
+        summary = str(text.split('|')[1]).strip().replace('\n', '')
         data += f'{summary}\n'
     f.write(data)
 
@@ -52,32 +52,36 @@ if __name__ == '__main__':
 
     model = AutoModelWithLMHead.from_pretrained('anonymous-german-nlp/german-gpt2')
 
-    training_args = TrainingArguments(
-        output_dir='models/gpt2-model', #The output directory
-        overwrite_output_dir=True, #overwrite the content of the output directory
-        num_train_epochs=1, # number of training epochs
-        per_device_train_batch_size=32, # batch size for training
-        per_device_eval_batch_size=32,  # batch size for evaluation
-        eval_steps=400, # Number of update steps between two evaluations.
-        save_steps=800, # after # steps model is saved
-        warmup_steps=500)
+    epochs = 10
 
-    trainer = Trainer(
-        tokenizer=tokenizer,
-        model=model,
-        args=training_args,
-        data_collator=data_collator,
-        train_dataset=train_dataset,
-        eval_dataset=test_dataset)
+    for epoch in range(epochs):
 
-    trainer.train()
-    trainer.save_model()
+        training_args = TrainingArguments(
+            output_dir='models/gpt2-model', #The output directory
+            overwrite_output_dir=True, #overwrite the content of the output directory
+            num_train_epochs=10, # number of training epochs
+            per_device_train_batch_size=16, # batch size for training
+            per_device_eval_batch_size=16,  # batch size for evaluation
+            eval_steps=400, # Number of update steps between two evaluations.
+            save_steps=800, # after # steps model is saved
+            warmup_steps=500)
 
-    pipe = pipeline(task='text-generation',
-                    model='models/gpt2-model',
-                    tokenizer='anonymous-german-nlp/german-gpt2',
-                    config={'max_length': 800})
+        trainer = Trainer(
+            tokenizer=tokenizer,
+            model=model,
+            args=training_args,
+            data_collator=data_collator,
+            train_dataset=train_dataset,
+            eval_dataset=test_dataset)
 
-    result = pipe('Zuerst Hähnchen')[0]['generated_text']
+        trainer.train()
+        trainer.save_model()
 
-    print(result)
+        pipe = pipeline(task='text-generation',
+                        model='models/gpt2-model',
+                        tokenizer='anonymous-german-nlp/german-gpt2',
+                        config={'max_length': 800})
+
+        result = pipe('Natürlich will Mützenich')[0]['generated_text']
+
+        print(f'epoch: {epoch} {result}')
