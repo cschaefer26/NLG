@@ -14,14 +14,10 @@ from pytorch_transformers import GPT2Tokenizer
 import torch
 from torch.nn import CrossEntropyLoss
 import torch.nn.functional as F
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
+from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, Dataset
 from tqdm import tnrange, tqdm
-from pytorch_transformers import ConstantLRSchedule, GPT2Config, GPT2LMHeadModel,AdamW, GPT2Tokenizer, WarmupLinearSchedule
-from tensorboardX import SummaryWriter
-
 
 class GPT21024Dataset(Dataset):
-
 
     def __init__(self, root_dir, ids_file, mode='train',length=None):
         self.root_dir = root_dir
