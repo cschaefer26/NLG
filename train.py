@@ -3,6 +3,7 @@
 import re
 import json
 from torch.nn import CrossEntropyLoss
+import pandas as pd
 from transformers import TextDataset, DataCollatorForLanguageModeling
 from transformers import pipeline
 from transformers import AutoTokenizer
@@ -23,12 +24,12 @@ def load_dataset(train_path, test_path, tokenizer):
     train_dataset = TextDataset(
         tokenizer=tokenizer,
         file_path=train_path,
-        block_size=128)
+        block_size=512)
 
     test_dataset = TextDataset(
         tokenizer=tokenizer,
         file_path=test_path,
-        block_size=128)
+        block_size=512)
 
     data_collator = DataCollatorForLanguageModeling(
         tokenizer=tokenizer, mlm=False)
@@ -37,20 +38,20 @@ def load_dataset(train_path, test_path, tokenizer):
 
 
 if __name__ == '__main__':
-    with open('/Users/cschaefe/datasets/ASVoice4_breathing_francesco/metadata_clean.csv') as f:
-        data = f.readlines()
+    df = pd.read_csv('data/20191122_final_train.csv')
     train_path = 'data/train_dataset.txt'
     test_path = 'data/test_dataset.txt'
-    train, test = train_test_split(data, test_size=0.1)
+    texts = df['body'].tolist()
+    train, test = train_test_split(df, test_size=1000)
     build_text_files(train, train_path)
     build_text_files(test, test_path)
     print(f'Train dataset length: {len(train)}')
     print(f'Test dataset length: {len(test)}')
 
-    tokenizer = AutoTokenizer.from_pretrained('anonymous-german-nlp/german-gpt2')
+    tokenizer = AutoTokenizer.from_pretrained('dbmdz/german-gpt2')
     train_dataset, test_dataset, data_collator = load_dataset(train_path, test_path, tokenizer)
 
-    model = AutoModelWithLMHead.from_pretrained('anonymous-german-nlp/german-gpt2')
+    model = AutoModelWithLMHead.from_pretrained('dbmdz/german-gpt2')
 
     epochs = 10
 
@@ -59,11 +60,11 @@ if __name__ == '__main__':
         training_args = TrainingArguments(
             output_dir='models/gpt2-model', #The output directory
             overwrite_output_dir=True, #overwrite the content of the output directory
-            num_train_epochs=10, # number of training epochs
-            per_device_train_batch_size=16, # batch size for training
-            per_device_eval_batch_size=16,  # batch size for evaluation
+            num_train_epochs=1, # number of training epochs
+            per_device_train_batch_size=8, # batch size for training
+            per_device_eval_batch_size=8,  # batch size for evaluation
             eval_steps=400, # Number of update steps between two evaluations.
-            save_steps=800, # after # steps model is saved
+            save_steps=1000, # after # steps model is saved
             warmup_steps=500)
 
         trainer = Trainer(
@@ -79,7 +80,7 @@ if __name__ == '__main__':
 
         pipe = pipeline(task='text-generation',
                         model='models/gpt2-model',
-                        tokenizer='anonymous-german-nlp/german-gpt2',
+                        tokenizer='dbmdz/german-gpt2',
                         config={'max_length': 800})
 
         result = pipe('Natürlich will Mützenich')[0]['generated_text']
