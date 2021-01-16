@@ -15,8 +15,7 @@ def build_text_files(text_list, dest_path):
     f = open(dest_path, 'w')
     data = ''
     for text in text_list:
-        summary = str(text.split('|')[1]).strip().replace('\n', '')
-        data += f'{summary}\n'
+        data += f'{text}\n'
     f.write(data)
 
 
@@ -42,7 +41,7 @@ if __name__ == '__main__':
     train_path = 'data/train_dataset.txt'
     test_path = 'data/test_dataset.txt'
     texts = df['body'].tolist()
-    train, test = train_test_split(df, test_size=1000)
+    train, test = train_test_split(texts, test_size=1000)
     build_text_files(train, train_path)
     build_text_files(test, test_path)
     print(f'Train dataset length: {len(train)}')
