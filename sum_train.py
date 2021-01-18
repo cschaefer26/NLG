@@ -89,6 +89,7 @@ def train(model: AutoModelWithLMHead,
           batch_size=16) -> None:
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    model = model.to(device)
     train_sampler = RandomSampler(train_dataset)
     train_loader = DataLoader(dataset=train_dataset, sampler=train_sampler,
                               batch_size=batch_size, num_workers=0,
@@ -101,8 +102,6 @@ def train(model: AutoModelWithLMHead,
         for step, batch in enumerate(epoch_iterator):
             total_step += 1
             inputs, labels = batch['tokens'].to(device), batch['tokens'].to(device)
-            inputs = inputs.to(device)
-            labels = labels.to(device)
             model.train()
             optimizer.zero_grad()
             logits = model(inputs)[0]
