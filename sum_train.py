@@ -86,7 +86,7 @@ def generate(model, context, length, device, temperature=1, top_k=0, top_p=0.0):
 def train(model: AutoModelWithLMHead,
           train_dataset: Dataset,
           val_dataset: Dataset,
-          batch_size=8) -> None:
+          batch_size=16) -> None:
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     train_sampler = RandomSampler(train_dataset)
