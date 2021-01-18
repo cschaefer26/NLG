@@ -85,7 +85,7 @@ def generate(model, context, length, device, temperature=1, top_k=0, top_p=0.0):
 
 def train(model: AutoModelWithLMHead,
           train_dataset: Dataset,
-          val_dataset: Dataset,
+          test_dataset: Dataset,
           batch_size=16) -> None:
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -97,7 +97,7 @@ def train(model: AutoModelWithLMHead,
     loss_func = CrossEntropyLoss(ignore_index=0, reduction='sum')
     optimizer = AdamW(model.parameters(), lr=2e-5)
     total_step = 0
-    for epoch in range(100):
+    for epoch in range(10):
         epoch_iterator = tqdm(train_loader, desc="Training")
         for step, batch in enumerate(epoch_iterator):
             total_step += 1
@@ -119,13 +119,20 @@ def train(model: AutoModelWithLMHead,
             optimizer.step()
             if total_step % 10 == 0:
                 print(f'\nepoch {epoch} step {total_step}, loss: {loss}')
+
+            texts = [
+                'Deutsche Bank sehr schwach nach Aussagen zum Konzernumbau',
+                'Mann nach Sturz in Brunnen schwer verletzt',
+                'Unwetterwarnung: Sturm zieht über Bayern',
+                'Bayern verliert klar im Pokalfinale gegen Liverpool'
+            ]
             if total_step % 100 == 0:
-                text = 'Deutsche Bank sehr schwach nach Aussagen zum Konzernumbau'
-                inp = tokenizer.encode(text) + tokenizer.encode('|')
-                gen = generate(model, context=inp, length=100, device=device)
-                gen = tokenizer.decode(gen[0])
-                torch.save(model.state_dict(), 'models/gpt2-checkpoint.pt')
-                print(f'step {step}, gen: {gen}')
+                for text in texts:
+                    inp = tokenizer.encode(text) + tokenizer.encode('|')
+                    gen = generate(model, context=inp, length=100, device=device)
+                    gen = tokenizer.decode(gen[0])
+                    torch.save(model.state_dict(), 'models/gpt2-checkpoint.pt')
+                    print(f'step {step}, gen: {gen}')
     return None
 
 
@@ -133,8 +140,8 @@ if __name__ == '__main__':
     tokenizer = AutoTokenizer.from_pretrained('dbmdz/german-gpt2')
     df = pd.read_csv('data/train.csv')
     dataset = SummarizerDataset(abstracts=df['seoTitle'].tolist(),
-                                texts=df['body'].tolist(),
-                                tokenizer=tokenizer)
+                                      texts=df['body'].tolist(),
+                                      tokenizer=tokenizer)
 
     model = AutoModelWithLMHead.from_pretrained('dbmdz/german-gpt2')
     train(model, dataset, dataset)
