@@ -37,7 +37,7 @@ def load_dataset(train_path, test_path, tokenizer):
 
 
 if __name__ == '__main__':
-    df = pd.read_csv('data/20191122_final_train.csv')
+    df = pd.read_csv('../data/20191122_final_train.csv')
     train_path = 'data/train_dataset.txt'
     test_path = 'data/test_dataset.txt'
     texts = df['body'].tolist()
@@ -80,6 +80,7 @@ if __name__ == '__main__':
         pipe = pipeline(task='text-generation',
                         model='models/gpt2-model',
                         tokenizer='dbmdz/german-gpt2',
+                        max_length=50,
                         config={'max_length': 800})
 
         result = pipe('Natürlich will Mützenich')[0]['generated_text']
