@@ -100,7 +100,7 @@ def train(model: AutoModelWithLMHead,
         epoch_iterator = tqdm(train_loader, desc="Training")
         for step, batch in enumerate(epoch_iterator):
             total_step += 1
-            inputs, labels = torch.tensor(batch['tokens']), torch.tensor(batch['tokens'])
+            inputs, labels = batch['tokens'].to(device), batch['tokens'].to(device)
             inputs = inputs.to(device)
             labels = labels.to(device)
             model.train()
