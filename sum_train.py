@@ -132,7 +132,7 @@ def train(model: AutoModelWithLMHead,
 
 if __name__ == '__main__':
     tokenizer = AutoTokenizer.from_pretrained('dbmdz/german-gpt2')
-    df = pd.read_csv('data/test.csv')
+    df = pd.read_csv('data/train.csv')
     dataset = SummarizerDataset(abstracts=df['seoTitle'].tolist(),
                                 texts=df['body'].tolist(),
                                 tokenizer=tokenizer)
