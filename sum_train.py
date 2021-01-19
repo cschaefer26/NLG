@@ -90,7 +90,7 @@ def generate(model, context, length, device, temperature=1, top_k=0, top_p=0.0):
 def train(model: AutoModelWithLMHead,
           train_dataset: Dataset,
           val_dataset: Dataset,
-          batch_size=16) -> None:
+          batch_size=32) -> None:
 
     summary_writer = SummaryWriter('logs/gpt2-training')
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -103,6 +103,7 @@ def train(model: AutoModelWithLMHead,
                             num_workers=0, collate_fn=collate_dataset)
     loss_func = CrossEntropyLoss(ignore_index=0, reduction='sum')
     optimizer = AdamW(model.parameters(), lr=2e-5)
+
     total_step = 0
     for epoch in range(10):
         epoch_iterator = tqdm(train_loader, desc="Training")
