@@ -133,7 +133,7 @@ def train(model: AutoModelWithLMHead,
                 val_loss = 0
                 val_norm = 0
                 for val_batch in val_loader:
-                    inputs, labels = batch['tokens'].to(device), batch['tokens'].to(device)
+                    inputs, labels = val_batch['tokens'].to(device), batch['tokens'].to(device)
                     with torch.no_grad():
                         logits = model(inputs)[0]
                     for b, idx in enumerate(val_batch['abstract_len']):
