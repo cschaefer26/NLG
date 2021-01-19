@@ -158,9 +158,12 @@ def train(model: AutoModelWithLMHead,
                     inp = tokenizer.encode(text) + tokenizer.encode('|')
                     gen = generate(model, context=inp, length=100, device=device)
                     gen = tokenizer.decode(gen[0])
-                    torch.save(model.state_dict(), 'models/gpt2-checkpoint.pt')
                     print(f'step {step}, gen: {gen}')
                 model.train()
+
+            if total_step % 50000 == 0:
+                torch.save(model.state_dict(), f'models/gpt2_step_{total_step}.pt')
+
     return None
 
 
