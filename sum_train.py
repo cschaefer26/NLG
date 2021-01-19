@@ -159,6 +159,8 @@ def train(model: AutoModelWithLMHead,
                     inp = tokenizer.encode(text) + tokenizer.encode('|')
                     gen = generate(model, context=inp, length=100, device=device)
                     gen = tokenizer.decode(gen[0])
+                    summary_writer.add_text('Text/Prediction', '    ' + gen,
+                                            global_step=total_step)
                     print(f'step {step}, gen: {gen}')
                 model.train()
 
