@@ -127,7 +127,7 @@ def train(model: AutoModelWithLMHead,
             summary_writer.add_scalar('Loss/train', loss, global_step=total_step)
 
             # EVALUATION
-            if total_step % 10 == 0:
+            if total_step % 1000 == 0:
                 model.eval()
                 val_loss = 0
                 val_norm = 0
@@ -152,7 +152,7 @@ def train(model: AutoModelWithLMHead,
                 'Unwetterwarnung: Sturm zieht über Bayern',
                 'Bayern verliert klar im Pokalfinale gegen Liverpool'
             ]
-            if total_step % 100 == 0:
+            if total_step % 1000 == 0:
                 model.eval()
                 for text in texts:
                     inp = tokenizer.encode(text) + tokenizer.encode('|')
