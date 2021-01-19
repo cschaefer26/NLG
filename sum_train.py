@@ -9,7 +9,7 @@ import torch.nn.functional as F
 import pandas as pd
 from torch.utils.data import Dataset, RandomSampler, DataLoader
 from torch.utils.tensorboard import SummaryWriter
-from transformers import AutoTokenizer, AutoModelWithLMHead
+from transformers import AutoTokenizer, AutoModelWithLMHead, get_polynomial_decay_schedule_with_warmup
 from tqdm import tnrange, tqdm
 from torch.nn.utils.rnn import pad_sequence
 
@@ -90,7 +90,7 @@ def generate(model, context, length, device, temperature=1, top_k=0, top_p=0.0):
 def train(model: AutoModelWithLMHead,
           train_dataset: Dataset,
           val_dataset: Dataset,
-          batch_size=32) -> None:
+          batch_size=2) -> None:
 
     summary_writer = SummaryWriter('logs/gpt2-training')
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -102,7 +102,11 @@ def train(model: AutoModelWithLMHead,
     val_loader = DataLoader(dataset=val_dataset, batch_size=batch_size,
                             num_workers=0, collate_fn=collate_dataset)
     loss_func = CrossEntropyLoss(ignore_index=0, reduction='sum')
-    optimizer = AdamW(model.parameters(), lr=2e-5)
+    optimizer = AdamW(model.parameters(), lr=5e-5)
+
+    scheduler = get_polynomial_decay_schedule_with_warmup(
+        optimizer=optimizer, num_warmup_steps=1000, num_training_steps=200000,
+        lr_end=1e-07, power=1.0, last_epoch=- 1)
 
     total_step = 0
     for epoch in range(10):
@@ -125,7 +129,11 @@ def train(model: AutoModelWithLMHead,
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.)
             optimizer.step()
+            scheduler.step()
             summary_writer.add_scalar('Loss/train', loss, global_step=total_step)
+            for param_group in optimizer.param_groups:
+                summary_writer.add_scalar('Params/learning_rate', param_group['lr'],
+                                          global_step=total_step)
 
             # EVALUATION
             if total_step % 1000 == 0:
